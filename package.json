@@ -1,0 +1,15 @@
+{
+  "name": "devcollab-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DevCollab Platform Workspace Root",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently --kill-others-on-fail -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start": "cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -28,7 +28,7 @@ export default function Dashboard() {
               <span>Real-Time Developer Workspace</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">
-              Welcome back, {user?.name || 'Developer'}! 👋
+              Welcome back, {user?.name || 'Developer'}!
             </h1>
             <p className="text-slate-300 text-sm leading-relaxed mb-6">
               Collaborate on projects, manage tasks with real-time updates, and discover developers in your workspace.
