@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 
 import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import authRoutes from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -54,6 +55,14 @@ app.use(express.urlencoded({ extended: true }));
 io.on('connection', (socket) => {
   console.log(`Socket Connected: ${socket.id}`);
 
+  // User room registration
+  socket.on('setup_user', (userId) => {
+    if (userId) {
+      socket.join(`user_${userId}`);
+      console.log(`User ${userId} joined personal socket room`);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`Socket Disconnected: ${socket.id}`);
   });
@@ -73,6 +82,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
 
 // 404 Handler
 app.use(notFound);
