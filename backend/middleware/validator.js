@@ -114,3 +114,21 @@ export const addMemberValidationRules = () => [
     .isIn(['Owner', 'Lead', 'Developer', 'Viewer'])
     .withMessage('Invalid team role'),
 ];
+
+// Task Validation Rules
+export const createTaskValidationRules = () => [
+  body('title')
+    .trim()
+    .notEmpty()
+    .withMessage('Task title is required')
+    .isLength({ min: 2, max: 120 })
+    .withMessage('Task title must be between 2 and 120 characters'),
+  body('status')
+    .optional()
+    .isIn(['To Do', 'In Progress', 'In Review', 'Completed'])
+    .withMessage('Invalid task status'),
+  body('priority')
+    .optional()
+    .isIn(['Low', 'Medium', 'High', 'Urgent'])
+    .withMessage('Invalid task priority'),
+];

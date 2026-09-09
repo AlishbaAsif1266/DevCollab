@@ -14,11 +14,21 @@ import {
   AlertCircle,
   Loader2,
   Mail,
+  CheckSquare,
+  MessageSquare,
+  ChevronRight,
+  ChevronLeft,
+  User,
+  Clock,
+  Tag,
 } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { initSocket, getSocket } from '../services/socket';
 import Navbar from '../components/Navbar';
+import CreateTaskModal from '../components/CreateTaskModal';
+import TaskCommentsModal from '../components/TaskCommentsModal';
+import ProjectChat from '../components/ProjectChat';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -26,8 +36,15 @@ export default function ProjectDetail() {
   const { user } = useAuthStore();
 
   const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('kanban');
+
+  // Modals state
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedTaskForComments, setSelectedTaskForComments] = useState(null);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
   // Member Invite State
   const [inviteEmail, setInviteEmail] = useState('');
@@ -49,16 +66,58 @@ export default function ProjectDetail() {
     }
   };
 
+  const fetchTasks = async () => {
+    setTasksLoading(true);
+    try {
+      const res = await API.get(`/projects/${id}/tasks`);
+      if (res.data.success) {
+        setTasks(res.data.tasks);
+      }
+    } catch (err) {
+      console.error('Failed to fetch project tasks:', err);
+    } finally {
+      setTasksLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchProject();
+    fetchTasks();
 
-    // Socket.IO Room Joining
+    // Real-time Socket.IO Connection & Listeners
     const socket = initSocket();
     socket.emit('join_project', id);
+
+    socket.on('task_created', (newTask) => {
+      setTasks((prevTasks) => [newTask, ...prevTasks.filter((t) => t._id !== newTask._id)]);
+    });
+
+    socket.on('task_updated', (updatedTask) => {
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+      );
+    });
+
+    socket.on('task_deleted', (deletedTaskId) => {
+      setTasks((prevTasks) => prevTasks.filter((t) => t._id !== deletedTaskId));
+    });
+
+    socket.on('task_comment_added', ({ taskId, task: updatedTask }) => {
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === taskId ? updatedTask : t))
+      );
+      if (selectedTaskForComments && selectedTaskForComments._id === taskId) {
+        setSelectedTaskForComments(updatedTask);
+      }
+    });
 
     return () => {
       const sock = getSocket();
       if (sock) {
+        sock.off('task_created');
+        sock.off('task_updated');
+        sock.off('task_deleted');
+        sock.off('task_comment_added');
         sock.emit('leave_project', id);
       }
     };
@@ -132,6 +191,51 @@ export default function ProjectDetail() {
     }
   };
 
+  // Kanban status move handler
+  const handleMoveTaskStatus = async (taskId, newStatus) => {
+    try {
+      const res = await API.put(`/tasks/${taskId}`, { status: newStatus });
+      if (res.data.success) {
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t._id === taskId ? res.data.task : t))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to move task status:', err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      const res = await API.delete(`/tasks/${taskId}`);
+      if (res.data.success) {
+        setTasks((prevTasks) => prevTasks.filter((t) => t._id !== taskId));
+      }
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+    }
+  };
+
+  const statusColumns = ['To Do', 'In Progress', 'In Review', 'Completed'];
+
+  const getNextStatus = (currentStatus) => {
+    const idx = statusColumns.indexOf(currentStatus);
+    return idx < statusColumns.length - 1 ? statusColumns[idx + 1] : null;
+  };
+
+  const getPrevStatus = (currentStatus) => {
+    const idx = statusColumns.indexOf(currentStatus);
+    return idx > 0 ? statusColumns[idx - 1] : null;
+  };
+
+  const priorityColors = {
+    Low: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+    Medium: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+    High: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    Urgent: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -192,6 +296,14 @@ export default function ProjectDetail() {
 
             {/* Actions & External Links */}
             <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIsTaskModalOpen(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Task</span>
+              </button>
+
               {project.repositoryUrl && (
                 <a
                   href={project.repositoryUrl}
@@ -244,8 +356,32 @@ export default function ProjectDetail() {
           </div>
         )}
 
-        {/* Workspace Tabs */}
+        {/* Workspace Navigation Tabs */}
         <div className="border-b border-slate-800 mb-8 flex space-x-8">
+          <button
+            onClick={() => setActiveTab('kanban')}
+            className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
+              activeTab === 'kanban'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            <span>Kanban Board ({tasks.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
+              activeTab === 'chat'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Team Chat</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('overview')}
             className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
@@ -271,7 +407,143 @@ export default function ProjectDetail() {
           </button>
         </div>
 
-        {/* Tab 1: Overview */}
+        {/* Tab 1: Interactive Kanban Board */}
+        {activeTab === 'kanban' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+            {statusColumns.map((colStatus) => {
+              const columnTasks = tasks.filter((t) => t.status === colStatus);
+              return (
+                <div key={colStatus} className="bg-slate-900/50 border border-slate-800 rounded-3xl p-4 flex flex-col min-h-[500px]">
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
+                      <span>{colStatus}</span>
+                    </h3>
+                    <span className="text-xs font-mono font-bold bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+                      {columnTasks.length}
+                    </span>
+                  </div>
+
+                  {/* Task Cards */}
+                  <div className="space-y-4 flex-1">
+                    {columnTasks.map((task) => (
+                      <div
+                        key={task._id}
+                        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 shadow-lg transition group flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                priorityColors[task.priority] || priorityColors.Medium
+                              }`}
+                            >
+                              {task.priority}
+                            </span>
+
+                            <button
+                              onClick={() => handleDeleteTask(task._id)}
+                              className="text-slate-600 hover:text-rose-400 p-1 transition opacity-0 group-hover:opacity-100"
+                              title="Delete Task"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition mb-1">
+                            {task.title}
+                          </h4>
+
+                          {task.description && (
+                            <p className="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">
+                              {task.description}
+                            </p>
+                          )}
+
+                          {/* Task Tags */}
+                          {task.tags && task.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {task.tags.map((tag, idx) => (
+                                <span key={idx} className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                          {/* Assignees & Comments */}
+                          <div className="flex items-center space-x-3">
+                            <div className="flex -space-x-1.5 overflow-hidden">
+                              {task.assignees?.map((a, idx) => (
+                                <div
+                                  key={idx}
+                                  title={a.name}
+                                  className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 border border-slate-900 flex items-center justify-center text-[9px] font-bold text-white uppercase"
+                                >
+                                  {a.name ? a.name.charAt(0) : 'U'}
+                                </div>
+                              ))}
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                setSelectedTaskForComments(task);
+                                setIsCommentsModalOpen(true);
+                              }}
+                              className="flex items-center space-x-1 text-slate-400 hover:text-indigo-400 transition"
+                              title="View & Add Comments"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span className="font-mono text-[11px]">{task.comments?.length || 0}</span>
+                            </button>
+                          </div>
+
+                          {/* Move Column Controls */}
+                          <div className="flex items-center space-x-1">
+                            {getPrevStatus(task.status) && (
+                              <button
+                                onClick={() => handleMoveTaskStatus(task._id, getPrevStatus(task.status))}
+                                className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md transition"
+                                title={`Move to ${getPrevStatus(task.status)}`}
+                              >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {getNextStatus(task.status) && (
+                              <button
+                                onClick={() => handleMoveTaskStatus(task._id, getNextStatus(task.status))}
+                                className="p-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded-md transition"
+                                title={`Move to ${getNextStatus(task.status)}`}
+                              >
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {columnTasks.length === 0 && (
+                      <div className="h-32 border-2 border-dashed border-slate-800/80 rounded-2xl flex items-center justify-center text-slate-600 text-xs font-medium">
+                        No Tasks in {colStatus}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Tab 2: Real-Time Team Chat */}
+        {activeTab === 'chat' && <ProjectChat projectId={id} />}
+
+        {/* Tab 3: Overview */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -317,7 +589,7 @@ export default function ProjectDetail() {
           </div>
         )}
 
-        {/* Tab 2: Team Members & RBAC */}
+        {/* Tab 3: Team Members & RBAC */}
         {activeTab === 'members' && (
           <div className="space-y-8">
             {/* Invite Form (Owner or Lead only) */}
@@ -356,7 +628,7 @@ export default function ProjectDetail() {
                     disabled={inviteLoading}
                     className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
                   >
-                    {inviteLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Add Member</span>}
+                    {inviteLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Send Email Invite</span>}
                   </button>
                 </form>
               </div>
@@ -380,7 +652,6 @@ export default function ProjectDetail() {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                      {/* Role selection for owner */}
                       {isOwner && m.user._id !== project.owner._id ? (
                         <select
                           value={m.role}
@@ -397,7 +668,6 @@ export default function ProjectDetail() {
                         </span>
                       )}
 
-                      {/* Remove member button */}
                       {isOwnerOrLead && m.user._id !== project.owner._id && (
                         <button
                           onClick={() => handleRemoveMember(m.user._id)}
@@ -415,6 +685,29 @@ export default function ProjectDetail() {
           </div>
         )}
       </main>
+
+      {/* Task Creation Modal */}
+      <CreateTaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        projectId={id}
+        members={project.members}
+        onTaskCreated={(newTask) => {
+          setTasks((prev) => [newTask, ...prev]);
+        }}
+      />
+
+      {/* Task Comments Modal */}
+      <TaskCommentsModal
+        isOpen={isCommentsModalOpen}
+        onClose={() => setIsCommentsModalOpen(false)}
+        task={selectedTaskForComments}
+        onTaskUpdated={(updatedTask) => {
+          setTasks((prev) =>
+            prev.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+          );
+        }}
+      />
     </div>
   );
 }

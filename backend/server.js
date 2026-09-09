@@ -11,6 +11,8 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import invitationRoutes from './routes/invitationRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +81,15 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Real-Time Chat Typing Indicators
+  socket.on('typing', ({ projectId, userName }) => {
+    socket.to(`project_${projectId}`).emit('user_typing', { userName });
+  });
+
+  socket.on('stop_typing', ({ projectId }) => {
+    socket.to(`project_${projectId}`).emit('user_stop_typing');
+  });
+
   socket.on('disconnect', () => {
     console.log(`Socket Disconnected: ${socket.id}`);
   });
@@ -103,6 +114,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api', taskRoutes);
+app.use('/api', messageRoutes);
 
 // 404 Handler
 app.use(notFound);
