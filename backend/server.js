@@ -10,6 +10,7 @@ import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
+import invitationRoutes from './routes/invitationRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -101,6 +102,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // 404 Handler
 app.use(notFound);

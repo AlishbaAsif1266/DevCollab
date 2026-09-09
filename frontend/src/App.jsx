@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import AcceptInvite from './pages/AcceptInvite';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/developers" element={<Developers />} />
+        <Route path="/invitations/accept/:token" element={<AcceptInvite />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>

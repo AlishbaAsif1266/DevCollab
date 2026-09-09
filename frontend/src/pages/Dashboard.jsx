@@ -1,25 +1,110 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, Users, FolderGit2, Sparkles, CheckCircle2, ArrowRight, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, FolderGit2, Sparkles, CheckCircle2, ArrowRight, Shield, Mail, Check, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { initSocket } from '../services/socket';
+import API from '../services/api';
 import Navbar from '../components/Navbar';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
+  const [invitations, setInvitations] = useState([]);
+
+  const fetchInvitations = async () => {
+    try {
+      const res = await API.get('/invitations/my-invitations');
+      if (res.data.success) {
+        setInvitations(res.data.invitations);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending invitations:', err);
+    }
+  };
 
   useEffect(() => {
     if (user?._id) {
       const socket = initSocket();
       socket.emit('setup_user', user._id);
+
+      socket.on('project_invite', (data) => {
+        fetchInvitations();
+      });
     }
+
+    fetchInvitations();
   }, [user]);
+
+  const handleAcceptInvite = async (token, projectId) => {
+    try {
+      const res = await API.post(`/invitations/accept/${token}`);
+      if (res.data.success) {
+        fetchInvitations();
+      }
+    } catch (err) {
+      console.error('Failed to accept invitation:', err);
+    }
+  };
+
+  const handleDeclineInvite = async (token) => {
+    try {
+      const res = await API.post(`/invitations/decline/${token}`);
+      if (res.data.success) {
+        fetchInvitations();
+      }
+    } catch (err) {
+      console.error('Failed to decline invitation:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        {/* Pending Invitations Banner */}
+        {invitations.length > 0 && (
+          <div className="mb-8 bg-gradient-to-r from-indigo-900/60 to-purple-900/60 border border-indigo-500/40 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
+              <Mail className="w-5 h-5 text-indigo-400" />
+              <span>Pending Project Workspace Invitations ({invitations.length})</span>
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {invitations.map((inv) => (
+                <div
+                  key={inv._id}
+                  className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between"
+                >
+                  <div>
+                    <h3 className="text-base font-bold text-white">{inv.project?.title}</h3>
+                    <p className="text-xs text-slate-400">
+                      Invited by <span className="text-slate-200">{inv.invitedBy?.name}</span> as{' '}
+                      <span className="text-indigo-400 font-semibold">{inv.role}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleDeclineInvite(inv.token)}
+                      className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+                      title="Decline"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleAcceptInvite(inv.token, inv.project?._id)}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center space-x-1 shadow-md shadow-indigo-600/20"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Accept</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Welcome Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-indigo-900/50 via-purple-900/40 to-slate-900 border border-slate-800 rounded-3xl p-8 mb-8 backdrop-blur-xl shadow-2xl">
           <div className="relative z-10 max-w-2xl">

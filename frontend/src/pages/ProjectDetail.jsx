@@ -76,18 +76,17 @@ export default function ProjectDetail() {
     setError(null);
 
     try {
-      const res = await API.post(`/projects/${id}/members`, {
+      const res = await API.post(`/invitations/projects/${id}/invite`, {
         email: inviteEmail,
         role: inviteRole,
       });
 
       if (res.data.success) {
-        setProject(res.data.project);
         setMessage(res.data.message);
         setInviteEmail('');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add member');
+      setError(err.response?.data?.message || 'Failed to send invitation');
     } finally {
       setInviteLoading(false);
     }
