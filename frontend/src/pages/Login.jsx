@@ -28,7 +28,7 @@ export default function Login() {
     try {
       const res = await API.post('/auth/login', formData);
       if (res.data.success) {
-        setAuth(res.data.user, res.data.token);
+        setAuth(res.data.user, res.data.accessToken || res.data.token, res.data.refreshToken);
         navigate('/dashboard');
       }
     } catch (err) {

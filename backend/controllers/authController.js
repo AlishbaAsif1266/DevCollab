@@ -1,5 +1,6 @@
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import generateToken from '../utils/generateToken.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/generateToken.js';
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -8,7 +9,6 @@ export const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, role, skills, bio } = req.body;
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -16,7 +16,6 @@ export const registerUser = async (req, res, next) => {
       throw new Error('User already exists with this email address');
     }
 
-    // Process skills if provided as string or array
     let parsedSkills = [];
     if (skills) {
       if (Array.isArray(skills)) {
@@ -26,7 +25,6 @@ export const registerUser = async (req, res, next) => {
       }
     }
 
-    // Create user in MongoDB
     const user = await User.create({
       name,
       email,
@@ -37,10 +35,18 @@ export const registerUser = async (req, res, next) => {
     });
 
     if (user) {
+      const accessToken = generateAccessToken(user._id);
+      const refreshToken = generateRefreshToken(user._id);
+
+      user.refreshToken = refreshToken;
+      await user.save();
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
-        token: generateToken(user._id),
+        accessToken,
+        refreshToken,
+        token: accessToken, // Backward compatibility
         user: {
           _id: user._id,
           name: user.name,
@@ -65,7 +71,7 @@ export const registerUser = async (req, res, next) => {
   }
 };
 
-// @desc    Auth user & get token
+// @desc    Auth user & get dual tokens
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res, next) => {
@@ -77,14 +83,21 @@ export const loginUser = async (req, res, next) => {
       throw new Error('Please provide email and password');
     }
 
-    // Find user by email and include password field
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +refreshToken');
 
     if (user && (await user.matchPassword(password))) {
+      const accessToken = generateAccessToken(user._id);
+      const refreshToken = generateRefreshToken(user._id);
+
+      user.refreshToken = refreshToken;
+      await user.save();
+
       res.json({
         success: true,
         message: 'Logged in successfully',
-        token: generateToken(user._id),
+        accessToken,
+        refreshToken,
+        token: accessToken, // Backward compatibility
         user: {
           _id: user._id,
           name: user.name,
@@ -104,6 +117,76 @@ export const loginUser = async (req, res, next) => {
       res.status(401);
       throw new Error('Invalid email or password');
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get new Access Token using Refresh Token
+// @route   POST /api/auth/refresh-token
+// @access  Public
+export const refreshTokenController = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(401);
+      throw new Error('Refresh Token is required');
+    }
+
+    // Verify Refresh Token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || 'devcollab_refresh_secret_token_2026'
+      );
+    } catch (err) {
+      res.status(401);
+      throw new Error('Refresh Token is invalid or expired. Please sign in again.');
+    }
+
+    const user = await User.findById(decoded.id).select('+refreshToken');
+
+    if (!user || user.refreshToken !== refreshToken) {
+      res.status(401);
+      throw new Error('Invalid Refresh Token or session revoked');
+    }
+
+    // Generate new Access Token and rotated Refresh Token
+    const newAccessToken = generateAccessToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    // Save rotated refresh token in MongoDB
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.json({
+      success: true,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      token: newAccessToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Logout user / revoke Refresh Token
+// @route   POST /api/auth/logout
+// @access  Private
+export const logoutUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.refreshToken = '';
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
   } catch (error) {
     next(error);
   }

@@ -62,6 +62,11 @@ const userSchema = new mongoose.Schema(
       enum: ['Junior', 'Mid-Level', 'Senior', 'Lead'],
       default: 'Mid-Level',
     },
+    refreshToken: {
+      type: String,
+      default: '',
+      select: false,
+    },
   },
   {
     timestamps: true,

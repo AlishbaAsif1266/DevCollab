@@ -33,7 +33,7 @@ export default function Register() {
     try {
       const res = await API.post('/auth/register', formData);
       if (res.data.success) {
-        setAuth(res.data.user, res.data.token);
+        setAuth(res.data.user, res.data.accessToken || res.data.token, res.data.refreshToken);
         navigate('/dashboard');
       }
     } catch (err) {
