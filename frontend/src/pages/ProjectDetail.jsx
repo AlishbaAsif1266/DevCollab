@@ -357,7 +357,7 @@ export default function ProjectDetail() {
         )}
 
         {/* Workspace Navigation Tabs */}
-        <div className="border-b border-slate-800 mb-8 flex space-x-8">
+        <div className="border-b border-slate-800 mb-8 flex space-x-6 sm:space-x-8 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
           <button
             onClick={() => setActiveTab('kanban')}
             className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
@@ -409,7 +409,7 @@ export default function ProjectDetail() {
 
         {/* Tab 1: Interactive Kanban Board */}
         {activeTab === 'kanban' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-start">
             {statusColumns.map((colStatus) => {
               const columnTasks = tasks.filter((t) => t.status === colStatus);
               return (
