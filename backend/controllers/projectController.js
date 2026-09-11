@@ -10,15 +10,15 @@ export const createProject = async (req, res, next) => {
 
     const targetStatus = status || 'Active';
 
-    // Mandatory GitHub and Live Demo URL rule for Completed & On Hold projects
-    if (['Completed', 'On Hold'].includes(targetStatus)) {
+    // Mandatory GitHub and Live Demo URL rule for Active, Completed & On Hold projects (only Planning is optional)
+    if (['Active', 'Completed', 'On Hold'].includes(targetStatus)) {
       if (!repositoryUrl || !repositoryUrl.trim()) {
         res.status(400);
-        throw new Error('GitHub Repository URL is mandatory when project status is Completed or On Hold');
+        throw new Error('GitHub Repository URL is mandatory when project status is Active, Completed, or On Hold');
       }
       if (!demoUrl || !demoUrl.trim()) {
         res.status(400);
-        throw new Error('Live Demo URL is mandatory when project status is Completed or On Hold');
+        throw new Error('Live Demo URL is mandatory when project status is Active, Completed, or On Hold');
       }
     }
 
@@ -163,15 +163,15 @@ export const updateProject = async (req, res, next) => {
     const targetRepo = repositoryUrl !== undefined ? repositoryUrl : project.repositoryUrl;
     const targetDemo = demoUrl !== undefined ? demoUrl : project.demoUrl;
 
-    // Mandatory GitHub and Live Demo URL rule for Completed & On Hold projects
-    if (['Completed', 'On Hold'].includes(targetStatus)) {
+    // Mandatory GitHub and Live Demo URL rule for Active, Completed & On Hold projects (only Planning is optional)
+    if (['Active', 'Completed', 'On Hold'].includes(targetStatus)) {
       if (!targetRepo || !targetRepo.trim()) {
         res.status(400);
-        throw new Error('GitHub Repository URL is mandatory when project status is Completed or On Hold');
+        throw new Error('GitHub Repository URL is mandatory when project status is Active, Completed, or On Hold');
       }
       if (!targetDemo || !targetDemo.trim()) {
         res.status(400);
-        throw new Error('Live Demo URL is mandatory when project status is Completed or On Hold');
+        throw new Error('Live Demo URL is mandatory when project status is Active, Completed, or On Hold');
       }
     }
 

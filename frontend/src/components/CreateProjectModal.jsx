@@ -166,15 +166,15 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>GitHub Repository URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
-                {['Completed', 'On Hold'].includes(formData.status) && (
+                <span>GitHub Repository URL {['Active', 'Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
+                {['Active', 'Completed', 'On Hold'].includes(formData.status) && (
                   <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
                 )}
               </label>
               <input
                 type="url"
                 name="repositoryUrl"
-                required={['Completed', 'On Hold'].includes(formData.status)}
+                required={['Active', 'Completed', 'On Hold'].includes(formData.status)}
                 value={formData.repositoryUrl}
                 onChange={handleChange}
                 placeholder="https://github.com/org/repo"
@@ -184,15 +184,15 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
 
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>Live Demo URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
-                {['Completed', 'On Hold'].includes(formData.status) && (
+                <span>Live Demo URL {['Active', 'Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
+                {['Active', 'Completed', 'On Hold'].includes(formData.status) && (
                   <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
                 )}
               </label>
               <input
                 type="url"
                 name="demoUrl"
-                required={['Completed', 'On Hold'].includes(formData.status)}
+                required={['Active', 'Completed', 'On Hold'].includes(formData.status)}
                 value={formData.demoUrl}
                 onChange={handleChange}
                 placeholder="https://myproject.app"
