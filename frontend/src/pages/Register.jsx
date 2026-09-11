@@ -132,6 +132,7 @@ export default function Register() {
               >
                 <option value="developer">Developer</option>
                 <option value="project_owner">Project Owner</option>
+                <option value="admin">Platform Admin</option>
               </select>
             </div>
 

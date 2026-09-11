@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Code2, Users, LayoutDashboard, LogOut, FolderGit2, Menu, X, User } from 'lucide-react';
+import { Code2, Users, LayoutDashboard, LogOut, FolderGit2, Menu, X, User, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function Navbar() {
@@ -75,6 +75,20 @@ export default function Navbar() {
                   <FolderGit2 className="w-3.5 h-3.5" />
                   <span>Projects</span>
                 </Link>
+
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                      isActive('/admin')
+                        ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                        : 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/10'
+                    }`}
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Admin</span>
+                  </Link>
+                )}
               </>
             )}
           </div>

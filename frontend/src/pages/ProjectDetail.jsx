@@ -21,6 +21,8 @@ import {
   User,
   Clock,
   Tag,
+  Code2,
+  Activity,
 } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
@@ -29,6 +31,8 @@ import Navbar from '../components/Navbar';
 import CreateTaskModal from '../components/CreateTaskModal';
 import TaskCommentsModal from '../components/TaskCommentsModal';
 import ProjectChat from '../components/ProjectChat';
+import ProjectResources from '../components/ProjectResources';
+import ProjectActivityFeed from '../components/ProjectActivityFeed';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -383,6 +387,30 @@ export default function ProjectDetail() {
           </button>
 
           <button
+            onClick={() => setActiveTab('resources')}
+            className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
+              activeTab === 'resources'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Code2 className="w-4 h-4" />
+            <span>Resources Hub</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
+              activeTab === 'activity'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span>Activity Log</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('overview')}
             className={`pb-4 text-sm font-semibold flex items-center space-x-2 border-b-2 transition ${
               activeTab === 'overview'
@@ -406,6 +434,14 @@ export default function ProjectDetail() {
             <span>Team Members ({project.members?.length})</span>
           </button>
         </div>
+
+        {/* Tab: Project Resources Hub */}
+        {activeTab === 'resources' && (
+          <ProjectResources projectId={id} isOwnerOrLead={isOwnerOrLead} />
+        )}
+
+        {/* Tab: Workspace Activity Log */}
+        {activeTab === 'activity' && <ProjectActivityFeed projectId={id} />}
 
         {/* Tab 1: Interactive Kanban Board */}
         {activeTab === 'kanban' && (

@@ -1,5 +1,6 @@
 import Task from '../models/Task.js';
 import Project from '../models/Project.js';
+import { logActivity } from './activityController.js';
 
 // @desc    Create new task in project
 // @route   POST /api/projects/:projectId/tasks
@@ -51,14 +52,17 @@ export const createTask = async (req, res, next) => {
       .populate('createdBy', 'name email avatar')
       .populate('assignees', 'name email avatar role');
 
+    const io = req.io || req.app?.get('io');
+
     // Real-Time Socket Broadcast to Project Room
-    if (req.io) {
-      req.io.to(`project_${projectId}`).emit('task_created', populatedTask);
+    if (io) {
+      io.to(projectId.toString()).emit('task_created', populatedTask);
+      io.to(`project_${projectId}`).emit('task_created', populatedTask);
 
       // Also notify assigned members individually
       if (assignees && assignees.length > 0) {
         assignees.forEach((assigneeId) => {
-          req.io.to(`user_${assigneeId}`).emit('task_assigned', {
+          io.to(`user_${assigneeId}`).emit('task_assigned', {
             taskId: task._id,
             taskTitle: task.title,
             projectTitle: project.title,
@@ -67,6 +71,17 @@ export const createTask = async (req, res, next) => {
         });
       }
     }
+
+    // Log Activity
+    await logActivity({
+      projectId,
+      userId: req.user._id,
+      action: 'task_created',
+      details: `Created task "${title}" in column ${status || 'To Do'}`,
+      targetType: 'Task',
+      targetId: task._id,
+      io,
+    });
 
     res.status(201).json({
       success: true,
@@ -153,6 +168,7 @@ export const updateTask = async (req, res, next) => {
       throw new Error('Task not found');
     }
 
+    const oldStatus = task.status;
     const { title, description, assignees, status, priority, dueDate, tags } = req.body;
 
     if (title) task.title = title;
@@ -177,10 +193,28 @@ export const updateTask = async (req, res, next) => {
       .populate('assignees', 'name email avatar role')
       .populate('comments.author', 'name email avatar');
 
+    const io = req.io || req.app?.get('io');
+
     // Real-Time Socket Broadcast
-    if (req.io) {
-      req.io.to(`project_${task.project}`).emit('task_updated', updatedTask);
+    if (io) {
+      io.to(task.project.toString()).emit('task_updated', updatedTask);
+      io.to(`project_${task.project}`).emit('task_updated', updatedTask);
     }
+
+    // Log Activity
+    const activityDetail = status && status !== oldStatus
+      ? `Moved task "${task.title}" from ${oldStatus} to ${status}`
+      : `Updated task details for "${task.title}"`;
+
+    await logActivity({
+      projectId: task.project,
+      userId: req.user._id,
+      action: 'task_updated',
+      details: activityDetail,
+      targetType: 'Task',
+      targetId: task._id,
+      io,
+    });
 
     res.json({
       success: true,
@@ -205,13 +239,28 @@ export const deleteTask = async (req, res, next) => {
     }
 
     const projectId = task.project;
+    const taskTitle = task.title;
 
     await task.deleteOne();
 
+    const io = req.io || req.app?.get('io');
+
     // Real-Time Socket Broadcast
-    if (req.io) {
-      req.io.to(`project_${projectId}`).emit('task_deleted', req.params.id);
+    if (io) {
+      io.to(projectId.toString()).emit('task_deleted', req.params.id);
+      io.to(`project_${projectId}`).emit('task_deleted', req.params.id);
     }
+
+    // Log Activity
+    await logActivity({
+      projectId,
+      userId: req.user._id,
+      action: 'task_deleted',
+      details: `Deleted task "${taskTitle}"`,
+      targetType: 'Task',
+      targetId: req.params.id,
+      io,
+    });
 
     res.json({
       success: true,
@@ -254,14 +303,32 @@ export const addTaskComment = async (req, res, next) => {
       .populate('assignees', 'name email avatar role')
       .populate('comments.author', 'name email avatar');
 
+    const io = req.io || req.app?.get('io');
+
     // Real-Time Socket Broadcast
-    if (req.io) {
-      req.io.to(`project_${task.project}`).emit('task_comment_added', {
+    if (io) {
+      io.to(task.project.toString()).emit('task_comment_added', {
+        taskId: task._id,
+        task: updatedTask,
+        comment: updatedTask.comments[updatedTask.comments.length - 1],
+      });
+      io.to(`project_${task.project}`).emit('task_comment_added', {
         taskId: task._id,
         task: updatedTask,
         comment: updatedTask.comments[updatedTask.comments.length - 1],
       });
     }
+
+    // Log Activity
+    await logActivity({
+      projectId: task.project,
+      userId: req.user._id,
+      action: 'task_updated',
+      details: `Commented on task "${task.title}"`,
+      targetType: 'Task',
+      targetId: task._id,
+      io,
+    });
 
     res.status(201).json({
       success: true,
@@ -272,3 +339,4 @@ export const addTaskComment = async (req, res, next) => {
     next(error);
   }
 };
+

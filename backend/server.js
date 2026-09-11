@@ -14,6 +14,10 @@ import invitationRoutes from './routes/invitationRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 
+import resourceRoutes from './routes/resourceRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -31,6 +35,8 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+app.set('io', io);
 
 // Security Middlewares
 app.use(helmet());
@@ -70,13 +76,15 @@ io.on('connection', (socket) => {
   // Project workspace room joining
   socket.on('join_project', (projectId) => {
     if (projectId) {
+      socket.join(projectId.toString());
       socket.join(`project_${projectId}`);
-      console.log(`Socket ${socket.id} joined project room project_${projectId}`);
+      console.log(`Socket ${socket.id} joined project room ${projectId}`);
     }
   });
 
   socket.on('leave_project', (projectId) => {
     if (projectId) {
+      socket.leave(projectId.toString());
       socket.leave(`project_${projectId}`);
     }
   });
@@ -84,10 +92,12 @@ io.on('connection', (socket) => {
   // Real-Time Chat Typing Indicators
   socket.on('typing', ({ projectId, userName }) => {
     socket.to(`project_${projectId}`).emit('user_typing', { userName });
+    socket.to(projectId.toString()).emit('user_typing', { userName });
   });
 
   socket.on('stop_typing', ({ projectId }) => {
     socket.to(`project_${projectId}`).emit('user_stop_typing');
+    socket.to(projectId.toString()).emit('user_stop_typing');
   });
 
   socket.on('disconnect', () => {
@@ -114,6 +124,9 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api/projects/:projectId/resources', resourceRoutes);
+app.use('/api/projects/:projectId/activities', activityRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', taskRoutes);
 app.use('/api', messageRoutes);
 
@@ -128,3 +141,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`DevCollab Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
+
