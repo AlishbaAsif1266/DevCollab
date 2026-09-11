@@ -102,6 +102,35 @@ export const createProjectValidationRules = () => [
     .withMessage('Please enter a valid Live Demo URL'),
 ];
 
+export const updateProjectValidationRules = () => [
+  body('title')
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Project title must be between 3 and 100 characters'),
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ min: 10, max: 2000 })
+    .withMessage('Description must be at least 10 characters long'),
+  body('category')
+    .optional()
+    .isIn(['Web Development', 'Mobile App', 'AI / ML', 'DevOps', 'Cloud & Infra', 'Open Source', 'Other'])
+    .withMessage('Invalid category'),
+  body('status')
+    .optional()
+    .isIn(['Planning', 'Active', 'Completed', 'On Hold'])
+    .withMessage('Invalid status'),
+  body('repositoryUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage('Please enter a valid Repository URL'),
+  body('demoUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage('Please enter a valid Live Demo URL'),
+];
+
 export const addMemberValidationRules = () => [
   body('email')
     .trim()

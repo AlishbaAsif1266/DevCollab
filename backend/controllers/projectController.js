@@ -8,6 +8,20 @@ export const createProject = async (req, res, next) => {
   try {
     const { title, description, category, repositoryUrl, demoUrl, techStack, status } = req.body;
 
+    const targetStatus = status || 'Active';
+
+    // Mandatory GitHub and Live Demo URL rule for Completed & On Hold projects
+    if (['Completed', 'On Hold'].includes(targetStatus)) {
+      if (!repositoryUrl || !repositoryUrl.trim()) {
+        res.status(400);
+        throw new Error('GitHub Repository URL is mandatory when project status is Completed or On Hold');
+      }
+      if (!demoUrl || !demoUrl.trim()) {
+        res.status(400);
+        throw new Error('Live Demo URL is mandatory when project status is Completed or On Hold');
+      }
+    }
+
     let parsedTechStack = [];
     if (techStack) {
       if (Array.isArray(techStack)) {
@@ -24,7 +38,7 @@ export const createProject = async (req, res, next) => {
       repositoryUrl: repositoryUrl || '',
       demoUrl: demoUrl || '',
       techStack: parsedTechStack,
-      status: status || 'Active',
+      status: targetStatus,
       owner: req.user._id,
       members: [
         {
@@ -144,6 +158,22 @@ export const updateProject = async (req, res, next) => {
     }
 
     const { title, description, category, repositoryUrl, demoUrl, techStack, status } = req.body;
+
+    const targetStatus = status || project.status;
+    const targetRepo = repositoryUrl !== undefined ? repositoryUrl : project.repositoryUrl;
+    const targetDemo = demoUrl !== undefined ? demoUrl : project.demoUrl;
+
+    // Mandatory GitHub and Live Demo URL rule for Completed & On Hold projects
+    if (['Completed', 'On Hold'].includes(targetStatus)) {
+      if (!targetRepo || !targetRepo.trim()) {
+        res.status(400);
+        throw new Error('GitHub Repository URL is mandatory when project status is Completed or On Hold');
+      }
+      if (!targetDemo || !targetDemo.trim()) {
+        res.status(400);
+        throw new Error('Live Demo URL is mandatory when project status is Completed or On Hold');
+      }
+    }
 
     if (title) project.title = title;
     if (description) project.description = description;

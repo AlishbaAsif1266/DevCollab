@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, FolderGit2, Sparkles, Link as LinkIcon, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, FolderGit2, Github, ExternalLink, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import API from '../services/api';
 
-export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }) {
+export default function EditProjectModal({ isOpen, onClose, project, onProjectUpdated }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -16,7 +16,21 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        title: project.title || '',
+        description: project.description || '',
+        category: project.category || 'Web Development',
+        repositoryUrl: project.repositoryUrl || '',
+        demoUrl: project.demoUrl || '',
+        techStack: project.techStack ? project.techStack.join(', ') : '',
+        status: project.status || 'Active',
+      });
+    }
+  }, [project]);
+
+  if (!isOpen || !project) return null;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,22 +42,13 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
     setError(null);
 
     try {
-      const res = await API.post('/projects', formData);
+      const res = await API.put(`/projects/${project._id}`, formData);
       if (res.data.success) {
-        onProjectCreated(res.data.project);
+        if (onProjectUpdated) onProjectUpdated(res.data.project);
         onClose();
-        setFormData({
-          title: '',
-          description: '',
-          category: 'Web Development',
-          repositoryUrl: '',
-          demoUrl: '',
-          techStack: '',
-          status: 'Active',
-        });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create project.');
+      setError(err.response?.data?.message || 'Failed to update project workspace settings.');
     } finally {
       setLoading(false);
     }
@@ -64,8 +69,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
             <FolderGit2 className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Create New Project Workspace</h2>
-            <p className="text-xs text-slate-400">Collaborate with developers and track progress in real-time</p>
+            <h2 className="text-xl font-bold text-white">Edit Workspace Settings</h2>
+            <p className="text-xs text-slate-400">Update GitHub repository URL, live demo, tech stack, or status</p>
           </div>
         </div>
 
@@ -87,7 +92,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               required
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g. AI-Powered Code Reviewer"
+              placeholder="e.g. DevCollab Platform"
               className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
             />
           </div>
@@ -115,7 +120,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
 
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                Initial Status
+                Workspace Status
               </label>
               <select
                 name="status"
@@ -141,9 +146,51 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               rows="3"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Outline the core objective, architecture, and goals of this project..."
+              placeholder="Outline project objectives & goals..."
               className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-sm text-slate-200 focus:outline-none"
             ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>GitHub Repository URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
+              {['Completed', 'On Hold'].includes(formData.status) && (
+                <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
+              )}
+            </label>
+            <div className="relative">
+              <Github className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+              <input
+                type="url"
+                name="repositoryUrl"
+                required={['Completed', 'On Hold'].includes(formData.status)}
+                value={formData.repositoryUrl}
+                onChange={handleChange}
+                placeholder="https://github.com/organization/repository"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>Live Demo URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
+              {['Completed', 'On Hold'].includes(formData.status) && (
+                <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
+              )}
+            </label>
+            <div className="relative">
+              <ExternalLink className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+              <input
+                type="url"
+                name="demoUrl"
+                required={['Completed', 'On Hold'].includes(formData.status)}
+                value={formData.demoUrl}
+                onChange={handleChange}
+                placeholder="https://myproject.app"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div>
@@ -157,46 +204,8 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 name="techStack"
                 value={formData.techStack}
                 onChange={handleChange}
-                placeholder="React, Node.js, Socket.IO, MongoDB, Tailwind"
+                placeholder="React, Node.js, Socket.IO, MongoDB"
                 className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>GitHub Repository URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
-                {['Completed', 'On Hold'].includes(formData.status) && (
-                  <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
-                )}
-              </label>
-              <input
-                type="url"
-                name="repositoryUrl"
-                required={['Completed', 'On Hold'].includes(formData.status)}
-                value={formData.repositoryUrl}
-                onChange={handleChange}
-                placeholder="https://github.com/org/repo"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>Live Demo URL {['Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
-                {['Completed', 'On Hold'].includes(formData.status) && (
-                  <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
-                )}
-              </label>
-              <input
-                type="url"
-                name="demoUrl"
-                required={['Completed', 'On Hold'].includes(formData.status)}
-                value={formData.demoUrl}
-                onChange={handleChange}
-                placeholder="https://myproject.app"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
               />
             </div>
           </div>
@@ -214,7 +223,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               disabled={loading}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Create Workspace</span>}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Save Workspace Settings</span>}
             </button>
           </div>
         </form>

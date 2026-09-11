@@ -12,6 +12,7 @@ import {
 import { protect } from '../middleware/auth.js';
 import {
   createProjectValidationRules,
+  updateProjectValidationRules,
   addMemberValidationRules,
   validateRequest,
 } from '../middleware/validator.js';
@@ -29,7 +30,7 @@ router
 router
   .route('/:id')
   .get(getProjectById)
-  .put(createProjectValidationRules(), validateRequest, updateProject)
+  .put(updateProjectValidationRules(), validateRequest, updateProject)
   .delete(deleteProject);
 
 // Member management routes with validation

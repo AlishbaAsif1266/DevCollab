@@ -23,6 +23,8 @@ import {
   Tag,
   Code2,
   Activity,
+  Edit,
+  Settings,
 } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
@@ -33,6 +35,7 @@ import TaskCommentsModal from '../components/TaskCommentsModal';
 import ProjectChat from '../components/ProjectChat';
 import ProjectResources from '../components/ProjectResources';
 import ProjectActivityFeed from '../components/ProjectActivityFeed';
+import EditProjectModal from '../components/EditProjectModal';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -47,6 +50,7 @@ export default function ProjectDetail() {
 
   // Modals state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTaskForComments, setSelectedTaskForComments] = useState(null);
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
@@ -308,16 +312,29 @@ export default function ProjectDetail() {
                 <span>Create Task</span>
               </button>
 
-              {project.repositoryUrl && (
+              {project.repositoryUrl ? (
                 <a
                   href={project.repositoryUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-700 flex items-center space-x-2 transition"
                 >
-                  <Github className="w-4 h-4" />
+                  <Github className="w-4 h-4 text-indigo-400" />
                   <span>GitHub</span>
                 </a>
+              ) : isOwnerOrLead ? (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-indigo-500/40 flex items-center space-x-2 transition animate-pulse"
+                  title="Connect GitHub Repository"
+                >
+                  <Github className="w-4 h-4 text-indigo-400" />
+                  <span>+ Connect GitHub</span>
+                </button>
+              ) : (
+                <span className="text-[11px] text-slate-500 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl italic">
+                  GitHub Repo Pending Setup
+                </span>
               )}
 
               {project.demoUrl && (
@@ -330,6 +347,17 @@ export default function ProjectDetail() {
                   <ExternalLink className="w-4 h-4" />
                   <span>Live Demo</span>
                 </a>
+              )}
+
+              {isOwnerOrLead && (
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-700 flex items-center space-x-2 transition"
+                  title="Edit Workspace Settings"
+                >
+                  <Settings className="w-4 h-4 text-slate-400" />
+                  <span>Edit Settings</span>
+                </button>
               )}
 
               {isOwner && (
@@ -742,6 +770,16 @@ export default function ProjectDetail() {
           setTasks((prev) =>
             prev.map((t) => (t._id === updatedTask._id ? updatedTask : t))
           );
+        }}
+      />
+      {/* Edit Project Settings Modal */}
+      <EditProjectModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        project={project}
+        onProjectUpdated={(updatedProject) => {
+          setProject(updatedProject);
+          setMessage('Project settings updated successfully!');
         }}
       />
     </div>
