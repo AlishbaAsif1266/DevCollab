@@ -82,9 +82,12 @@ export const sendProjectMessage = async (req, res, next) => {
       'name email avatar role'
     );
 
+    const io = req.io || req.app?.get('io');
+
     // Real-Time Socket.IO Broadcast to Project Room
-    if (req.io) {
-      req.io.to(`project_${projectId}`).emit('receive_message', populatedMessage);
+    if (io) {
+      io.to(projectId.toString()).emit('receive_message', populatedMessage);
+      io.to(`project_${projectId}`).emit('receive_message', populatedMessage);
     }
 
     res.status(201).json({

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, User, Loader2, Sparkles } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { getSocket } from '../services/socket';
+import { getSocket, initSocket } from '../services/socket';
 
 export default function ProjectChat({ projectId }) {
   const { user } = useAuthStore();
@@ -35,13 +35,19 @@ export default function ProjectChat({ projectId }) {
   useEffect(() => {
     fetchMessages();
 
-    const socket = getSocket();
+    const socket = initSocket();
 
     if (socket) {
+      socket.emit('join_project', projectId);
+
       // Listen for incoming messages
       socket.on('receive_message', (incomingMsg) => {
-        if (incomingMsg.project === projectId) {
-          setMessages((prev) => [...prev, incomingMsg]);
+        const msgProjId = typeof incomingMsg.project === 'object' ? incomingMsg.project?._id : incomingMsg.project;
+        if (msgProjId?.toString() === projectId?.toString()) {
+          setMessages((prev) => {
+            if (prev.some((m) => m._id === incomingMsg._id)) return prev;
+            return [...prev, incomingMsg];
+          });
         }
       });
 
@@ -101,7 +107,12 @@ export default function ProjectChat({ projectId }) {
         text: newMessage,
       });
 
-      if (res.data.success) {
+      if (res.data.success && res.data.message) {
+        const sentMsg = res.data.message;
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === sentMsg._id)) return prev;
+          return [...prev, sentMsg];
+        });
         setNewMessage('');
       }
     } catch (err) {
@@ -183,11 +194,15 @@ export default function ProjectChat({ projectId }) {
           })
         )}
 
-        {/* Typing indicator */}
+        {/* WhatsApp-style 3 Bouncing Dots Typing Indicator */}
         {typingUser && (
-          <div className="flex items-center space-x-2 text-xs text-indigo-400 italic bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl w-fit animate-pulse">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{typingUser} is typing a message...</span>
+          <div className="flex items-center space-x-2.5 bg-slate-950/90 border border-slate-800 text-slate-300 text-xs px-4 py-2 rounded-2xl w-fit shadow-lg">
+            <span className="font-bold text-indigo-400 text-xs">{typingUser}</span>
+            <div className="flex items-center space-x-1 pt-0.5">
+              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+            </div>
           </div>
         )}
 
