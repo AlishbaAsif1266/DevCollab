@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, FolderGit2, Sparkles, Link as LinkIcon, Loader2, AlertCircle } from 'lucide-react';
+import { X, FolderGit2, Terminal, Loader2, AlertCircle } from 'lucide-react';
 import API from '../services/api';
 
 export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }) {
@@ -50,35 +50,35 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition"
+          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-[#181d28] transition"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400">
-            <FolderGit2 className="w-6 h-6" />
+        <div className="flex items-center space-x-3 mb-5">
+          <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+            <FolderGit2 className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Create New Project Workspace</h2>
-            <p className="text-xs text-slate-400">Collaborate with developers and track progress in real-time</p>
+            <h2 className="text-base font-semibold text-white">Create Project Workspace</h2>
+            <p className="text-xs text-slate-400">Collaborate with developers and track tasks in real-time</p>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center space-x-3 text-rose-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="mb-4 p-3 bg-rose-950/40 border border-rose-800/50 rounded-lg flex items-center space-x-2 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Project Title *
             </label>
             <input
@@ -87,21 +87,21 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               required
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g. AI-Powered Code Reviewer"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+              placeholder="e.g. Distributed Task Orchestrator"
+              className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Category
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="Web Development">Web Development</option>
                 <option value="Mobile App">Mobile App</option>
@@ -114,14 +114,14 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Initial Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="Active">Active</option>
                 <option value="Planning">Planning</option>
@@ -132,7 +132,7 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Description *
             </label>
             <textarea
@@ -141,34 +141,34 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
               rows="3"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Outline the core objective, architecture, and goals of this project..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-sm text-slate-200 focus:outline-none"
+              placeholder="Outline the core objective, architecture, and milestones of this project..."
+              className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition resize-none"
             ></textarea>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-              Tech Stack (Comma separated)
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Tech Stack (comma separated)
             </label>
             <div className="relative">
-              <Sparkles className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+              <Terminal className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="text"
                 name="techStack"
                 value={formData.techStack}
                 onChange={handleChange}
-                placeholder="React, Node.js, Socket.IO, MongoDB, Tailwind"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+                placeholder="React, TypeScript, Go, PostgreSQL, Docker"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg pl-9 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
                 <span>GitHub Repository URL {['Active', 'Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
                 {['Active', 'Completed', 'On Hold'].includes(formData.status) && (
-                  <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
+                  <span className="text-[10px] text-rose-400 font-mono">Required</span>
                 )}
               </label>
               <input
@@ -178,15 +178,15 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 value={formData.repositoryUrl}
                 onChange={handleChange}
                 placeholder="https://github.com/org/repo"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
                 <span>Live Demo URL {['Active', 'Completed', 'On Hold'].includes(formData.status) && <span className="text-rose-400">*</span>}</span>
                 {['Active', 'Completed', 'On Hold'].includes(formData.status) && (
-                  <span className="text-[10px] text-rose-400 normal-case">Required for {formData.status}</span>
+                  <span className="text-[10px] text-rose-400 font-mono">Required</span>
                 )}
               </label>
               <input
@@ -196,25 +196,25 @@ export default function CreateProjectModal({ isOpen, onClose, onProjectCreated }
                 value={formData.demoUrl}
                 onChange={handleChange}
                 placeholder="https://myproject.app"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end space-x-3">
+          <div className="pt-3 flex justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition"
+              className="px-3.5 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-xs font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1.5 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Create Workspace</span>}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Create Workspace</span>}
             </button>
           </div>
         </form>

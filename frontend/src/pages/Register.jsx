@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Code2, Mail, Lock, User, Briefcase, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
+import { Code2, Mail, Lock, User, Terminal, AlertCircle, Loader2 } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
@@ -44,32 +44,32 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 py-12">
-      <div className="max-w-md w-full bg-slate-900/80 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-col items-center mb-8 text-center">
-          <div className="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400 mb-3">
-            <Code2 className="w-8 h-8" />
+    <div className="min-h-[100dvh] bg-[#090a0f] text-slate-100 flex items-center justify-center p-4 py-12">
+      <div className="max-w-md w-full bg-[#0e1117] border border-[#1e2430] rounded-2xl p-8 shadow-xl">
+        <div className="flex flex-col items-center mb-7 text-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
+            <Code2 className="w-5 h-5" />
           </div>
-          <h2 className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            Join DevCollab
-          </h2>
-          <p className="text-sm text-slate-400 mt-1">Create your developer account & start collaborating</p>
+          <h1 className="text-xl font-semibold text-white tracking-tight">
+            Create DevCollab Account
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Connect with developers and manage project workspaces</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center space-x-3 text-rose-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="mb-5 p-3.5 bg-rose-950/40 border border-rose-800/50 rounded-xl flex items-center space-x-2.5 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Full Name
             </label>
             <div className="relative">
-              <User className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
+              <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               <input
                 type="text"
                 name="name"
@@ -77,17 +77,17 @@ export default function Register() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Alex Mercer"
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               <input
                 type="email"
                 name="email"
@@ -95,40 +95,40 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="alex@example.com"
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Password
             </label>
             <div className="relative">
-              <Lock className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
+              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               <input
                 type="password"
                 name="password"
                 required
-                minlength="6"
+                minLength="6"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Role
               </label>
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="developer">Developer</option>
                 <option value="project_owner">Project Owner</option>
@@ -137,14 +137,14 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Experience
               </label>
               <select
                 name="experienceLevel"
                 value={formData.experienceLevel}
                 onChange={handleChange}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="Junior">Junior</option>
                 <option value="Mid-Level">Mid-Level</option>
@@ -155,24 +155,24 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Technical Skills (comma separated)
             </label>
             <div className="relative">
-              <Sparkles className="w-5 h-5 text-slate-500 absolute left-3.5 top-3" />
+              <Terminal className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               <input
                 type="text"
                 name="skills"
                 value={formData.skills}
                 onChange={handleChange}
-                placeholder="React, Node.js, MongoDB, Socket.IO"
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-200 focus:outline-none transition"
+                placeholder="React, Node.js, TypeScript, PostgreSQL"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg pl-10 pr-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Developer Bio
             </label>
             <textarea
@@ -180,18 +180,18 @@ export default function Register() {
               rows="2"
               value={formData.bio}
               onChange={handleChange}
-              placeholder="Tell other developers about your projects & stack..."
-              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-sm text-slate-200 focus:outline-none transition"
+              placeholder="Full-stack engineer interested in distributed systems and devtools..."
+              className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition resize-none"
             ></textarea>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/25 disabled:opacity-50"
+            className="w-full mt-2 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-medium py-2.5 px-4 rounded-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 text-xs"
           >
             {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <span>Create Account</span>
             )}
@@ -200,7 +200,7 @@ export default function Register() {
 
         <div className="mt-6 text-center text-xs text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
+          <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium hover:underline">
             Sign In
           </Link>
         </div>

@@ -1,45 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Shield,
-  Users,
-  FolderGit2,
-  CheckSquare,
-  Code2,
-  Trash2,
-  UserCheck,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-  Terminal,
-} from 'lucide-react';
+import { Shield, Users, FolderGit2, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import API from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 
 export default function AdminModeration() {
   const { user } = useAuthStore();
-  const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const fetchAdminData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const [statsRes, usersRes] = await Promise.all([
-        API.get('/admin/stats'),
+      const [usersRes, statsRes] = await Promise.all([
         API.get('/admin/users'),
+        API.get('/admin/stats'),
       ]);
 
-      if (statsRes.data.success) {
-        setStats(statsRes.data.stats);
-      }
       if (usersRes.data.success) {
         setUsers(usersRes.data.users);
       }
+      if (statsRes.data.success) {
+        setStats(statsRes.data.stats);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load admin moderation data');
+      setError(err.response?.data?.message || 'Failed to fetch administration telemetry.');
     } finally {
       setLoading(false);
     }
@@ -50,138 +39,136 @@ export default function AdminModeration() {
   }, []);
 
   const handleRoleChange = async (userId, newRole) => {
-    setMessage(null);
-    setError(null);
     try {
       const res = await API.put(`/admin/users/${userId}/role`, { role: newRole });
       if (res.data.success) {
-        setUsers((prev) =>
-          prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
-        );
-        setMessage(res.data.message);
+        setMessage('Role updated successfully.');
+        setUsers(users.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
+        setTimeout(() => setMessage(null), 3000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update user role');
+      setError(err.response?.data?.message || 'Failed to update user role.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to remove this user from the platform?'))
+    if (!window.confirm('Are you sure you want to permanently delete this user account?')) {
       return;
-    setMessage(null);
-    setError(null);
+    }
+
     try {
       const res = await API.delete(`/admin/users/${userId}`);
       if (res.data.success) {
-        setUsers((prev) => prev.filter((u) => u._id !== userId));
-        setMessage('User removed from platform successfully.');
-        fetchAdminData();
+        setMessage('User deleted successfully.');
+        setUsers(users.filter((u) => u._id !== userId));
+        setTimeout(() => setMessage(null), 3000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to remove user');
+      setError(err.response?.data?.message || 'Failed to delete user.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-[100dvh] bg-[#090a0f] text-slate-100 flex flex-col">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
         {/* Banner Header */}
-        <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-900 border border-slate-800 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div>
-            <div className="flex items-center space-x-2 text-indigo-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2">
-              <Shield className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-blue-400 font-mono text-[11px] font-medium uppercase tracking-wider mb-1.5">
+              <Shield className="w-3.5 h-3.5" />
               <span>Platform Administration & Governance</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-white">Platform Moderation Dashboard</h1>
-            <p className="text-slate-400 text-sm mt-1 max-w-2xl">
-              Oversee platform users, manage permissions & role hierarchy, and monitor workspace telemetry.
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Platform Moderation</h1>
+            <p className="text-slate-400 text-xs mt-1 max-w-2xl leading-relaxed">
+              Oversee platform users, manage permissions and role hierarchy, and monitor workspace telemetry.
             </p>
           </div>
 
-          <span className="text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl">
-            Admin Authenticated: {user?.name}
+          <span className="text-xs font-mono text-slate-300 bg-[#131720] border border-[#1e2430] px-3.5 py-1.5 rounded-lg self-start md:self-auto">
+            Admin: {user?.name}
           </span>
         </div>
 
         {/* Status Feedback */}
         {message && (
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center space-x-3 text-emerald-400 text-sm">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          <div className="p-3.5 bg-emerald-950/40 border border-emerald-800/40 rounded-xl flex items-center space-x-2.5 text-emerald-400 text-xs">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
             <span>{message}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center space-x-3 text-rose-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="p-3.5 bg-rose-950/40 border border-rose-800/50 rounded-xl flex items-center space-x-2.5 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Platform Stat Cards */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-4.5 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Users</span>
-                <h3 className="text-2xl font-bold text-white mt-1 font-mono">{stats.totalUsers}</h3>
+                <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Total Users</span>
+                <h3 className="text-2xl font-semibold text-white mt-1 font-mono">{stats.totalUsers}</h3>
               </div>
-              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
-                <Users className="w-5 h-5" />
+              <div className="p-2.5 bg-[#131720] border border-[#1e2430] rounded-lg text-slate-300">
+                <Users className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+            <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-4.5 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Workspaces</span>
-                <h3 className="text-2xl font-bold text-white mt-1 font-mono">{stats.totalProjects}</h3>
+                <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Workspaces</span>
+                <h3 className="text-2xl font-semibold text-white mt-1 font-mono">{stats.totalProjects}</h3>
               </div>
-              <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-purple-400">
-                <FolderGit2 className="w-5 h-5" />
+              <div className="p-2.5 bg-[#131720] border border-[#1e2430] rounded-lg text-slate-300">
+                <FolderGit2 className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+            <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-4.5 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Kanban Tasks</span>
-                <h3 className="text-2xl font-bold text-white mt-1 font-mono">{stats.totalTasks}</h3>
+                <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Project Owners</span>
+                <h3 className="text-2xl font-semibold text-white mt-1 font-mono">{stats.roleDistribution?.project_owner || 0}</h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
-                <CheckSquare className="w-5 h-5" />
+              <div className="p-2.5 bg-[#131720] border border-[#1e2430] rounded-lg text-slate-300">
+                <Shield className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-lg">
+            <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-4.5 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Resources Shared</span>
-                <h3 className="text-2xl font-bold text-white mt-1 font-mono">{stats.totalResources}</h3>
+                <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Engineers</span>
+                <h3 className="text-2xl font-semibold text-white mt-1 font-mono">{stats.roleDistribution?.developer || 0}</h3>
               </div>
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
-                <Code2 className="w-5 h-5" />
+              <div className="p-2.5 bg-[#131720] border border-[#1e2430] rounded-lg text-slate-300">
+                <Users className="w-4 h-4" />
               </div>
             </div>
           </div>
         )}
 
-        {/* Registered Users Table */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-indigo-400" />
-              <span>User Accounts & Permissions ({users.length})</span>
-            </h2>
-          </div>
+        {/* User Roster Table */}
+        <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-400" />
+            <span>Platform User Directory</span>
+          </h2>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+            <div className="py-12 flex items-center justify-center space-x-2 text-slate-500 text-xs">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+              <span>Loading telemetry...</span>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                <thead className="bg-[#131720] text-slate-400 uppercase font-mono text-[11px] border-b border-[#1e2430]">
                   <tr>
                     <th className="px-4 py-3">User</th>
                     <th className="px-4 py-3">Experience</th>
@@ -190,32 +177,32 @@ export default function AdminModeration() {
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/80">
+                <tbody className="divide-y divide-[#1e2430]">
                   {users.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-800/40 transition">
-                      <td className="px-4 py-3.5">
+                    <tr key={u._id} className="hover:bg-[#131720]/60 transition">
+                      <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white uppercase text-xs">
+                          <div className="w-7 h-7 rounded-md bg-[#181d28] border border-[#2e374a] flex items-center justify-center font-mono font-medium text-slate-200 uppercase text-[11px]">
                             {u.name ? u.name.charAt(0) : 'U'}
                           </div>
                           <div>
-                            <div className="font-bold text-white">{u.name}</div>
-                            <div className="text-[11px] text-slate-400">{u.email}</div>
+                            <div className="font-medium text-white">{u.name}</div>
+                            <div className="text-[11px] font-mono text-slate-400">{u.email}</div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">
-                        <span className="bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md font-medium">
+                      <td className="px-4 py-3">
+                        <span className="bg-[#131720] text-slate-300 border border-[#1e2430] px-2 py-0.5 rounded text-[11px] font-mono">
                           {u.experienceLevel || 'Mid-Level'}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3">
                         <select
                           value={u.role}
                           onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                          className="bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-1 text-xs text-indigo-400 font-semibold focus:outline-none"
+                          className="bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-md px-2.5 py-1 text-xs text-blue-400 font-medium focus:outline-none transition"
                         >
                           <option value="developer">Developer</option>
                           <option value="project_owner">Project Owner</option>
@@ -223,18 +210,18 @@ export default function AdminModeration() {
                         </select>
                       </td>
 
-                      <td className="px-4 py-3.5 font-mono text-slate-400">
+                      <td className="px-4 py-3 font-mono text-[11px] text-slate-400">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </td>
 
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-3 text-right">
                         {u._id !== user._id && (
                           <button
                             onClick={() => handleDeleteUser(u._id)}
-                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition"
+                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 rounded-md transition"
                             title="Remove User Account"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </td>

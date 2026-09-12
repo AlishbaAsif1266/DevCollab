@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckSquare, Sparkles, User, Calendar, Flag, Loader2, AlertCircle } from 'lucide-react';
+import { X, CheckSquare, User, Loader2, AlertCircle } from 'lucide-react';
 import API from '../services/api';
 
 export default function CreateTaskModal({ isOpen, onClose, projectId, members, onTaskCreated }) {
@@ -64,35 +64,35 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-[#0e1117] border border-[#1e2430] rounded-xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition"
+          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-[#181d28] transition"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400">
-            <CheckSquare className="w-6 h-6" />
+        <div className="flex items-center space-x-3 mb-5">
+          <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+            <CheckSquare className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Create New Task</h2>
-            <p className="text-xs text-slate-400">Add task to the project Kanban board with assignees & priorities</p>
+            <h2 className="text-base font-semibold text-white">Create New Task</h2>
+            <p className="text-xs text-slate-400">Add task to the Kanban board with assignees and priority</p>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center space-x-3 text-rose-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="mb-4 p-3 bg-rose-950/40 border border-rose-800/50 rounded-lg flex items-center space-x-2 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Task Title *
             </label>
             <input
@@ -102,20 +102,20 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g. Implement User Authentication JWT Middleware"
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+              className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Priority
               </label>
               <select
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -125,14 +125,14 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Status Column
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none transition"
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
@@ -143,7 +143,7 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Task Description
             </label>
             <textarea
@@ -151,16 +151,16 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
               rows="3"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Provide technical instructions or acceptance criteria for this task..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-sm text-slate-200 focus:outline-none"
+              placeholder="Provide technical instructions or acceptance criteria..."
+              className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition resize-none"
             ></textarea>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
               Assign Team Members
             </label>
-            <div className="flex flex-wrap gap-2 bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-32 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 bg-[#090a0f] border border-[#1e2430] rounded-lg p-2.5 max-h-28 overflow-y-auto">
               {members?.map((m) => {
                 const isAssigned = formData.assignees.includes(m.user._id);
                 return (
@@ -168,10 +168,10 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
                     key={m._id}
                     type="button"
                     onClick={() => handleAssigneeToggle(m.user._id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center space-x-1.5 transition ${
                       isAssigned
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-[#131720] border border-[#1e2430] text-slate-400 hover:text-white'
                     }`}
                   >
                     <User className="w-3 h-3" />
@@ -182,9 +182,9 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
                 Due Date
               </label>
               <input
@@ -192,13 +192,13 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                Tags (Comma separated)
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Tags (comma separated)
               </label>
               <input
                 type="text"
@@ -206,25 +206,25 @@ export default function CreateTaskModal({ isOpen, onClose, projectId, members, o
                 value={formData.tags}
                 onChange={handleChange}
                 placeholder="Backend, API, Auth"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                className="w-full bg-[#090a0f] border border-[#1e2430] focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
               />
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end space-x-3">
+          <div className="pt-3 flex justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition"
+              className="px-3.5 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-xs font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1.5 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>Create Task</span>}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Create Task</span>}
             </button>
           </div>
         </form>
